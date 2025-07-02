@@ -1,6 +1,8 @@
-package br.com.alura.ForumHub.forum;
+package br.com.alura.ForumHub.domain.forum;
 
-import br.com.alura.ForumHub.autores.Autor;
+
+import br.com.alura.ForumHub.domain.autores.Autor;
+import br.com.alura.ForumHub.domain.autores.Curso;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;

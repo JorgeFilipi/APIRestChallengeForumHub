@@ -1,4 +1,4 @@
-package br.com.alura.ForumHub.forum;
+package br.com.alura.ForumHub.domain.autores;
 
 public enum Curso {
     QA,
