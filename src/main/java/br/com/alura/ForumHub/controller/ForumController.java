@@ -1,56 +1,74 @@
 package br.com.alura.ForumHub.controller;
 
 import br.com.alura.ForumHub.domain.autores.AutorRepository;
-import br.com.alura.ForumHub.domain.forum.DadosCadastroForum;
-import br.com.alura.ForumHub.domain.forum.Forum;
-import br.com.alura.ForumHub.domain.forum.ForumRepository;
-import br.com.alura.ForumHub.domain.forum.DadosListagemForum;
+import br.com.alura.ForumHub.domain.topicos.DadosCadastroTopicos;
+import br.com.alura.ForumHub.domain.topicos.Topicos;
+import br.com.alura.ForumHub.domain.topicos.TopicosRepository;
+import br.com.alura.ForumHub.domain.topicos.DadosListagemTopicos;
 import jakarta.validation.Valid;
+import jakarta.validation.ValidationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import java.time.LocalDateTime;
-
 @RestController
-@RequestMapping("/forum")
+@RequestMapping("/topicos")
 public class ForumController {
 
     @Autowired
-    private ForumRepository forumRepository;
+    private TopicosRepository topicosRepository;
 
     @Autowired
     private AutorRepository autorRepository;
 
     @GetMapping
-    public ResponseEntity<Page<DadosListagemForum>> lista(@PageableDefault(size = 10) Pageable paginacao) {
-        var forums = forumRepository.findAll(paginacao).map(DadosListagemForum::new);
+    public ResponseEntity<Page<DadosListagemTopicos>> lista(@PageableDefault(size = 10, sort = "dataCadastro", direction = Sort.Direction.ASC) Pageable paginacao) {
+        var forums = topicosRepository.findAllByStatusTrue(paginacao).map(DadosListagemTopicos::new);
         return ResponseEntity.ok(forums);
     }
 
     @PostMapping
     @Transactional
-    public ResponseEntity<?> cadastrar(@RequestBody @Valid DadosCadastroForum dados, UriComponentsBuilder uriBuilder) {
-        var autor = autorRepository.getReferenceById(dados.autorId()); // busca eficiente com proxy
-        var forum = new Forum(
-                null,
-                dados.titulo(),
-                dados.mensagem(),
-                LocalDateTime.now(),
-                true, // status ativo
-                autor,
-                dados.curso()
-        );
+    public ResponseEntity<?> cadastrar(@RequestBody @Valid DadosCadastroTopicos dados, UriComponentsBuilder uriBuilder) {
+        var autor = autorRepository.getReferenceById(dados.autorId());
+        var forum = new Topicos(dados, autor);
+        topicosRepository.save(forum);
+        var uri = uriBuilder.path("/topicos/{id}").buildAndExpand(forum.getId()).toUri();
+        return ResponseEntity.created(uri).body(new DadosListagemTopicos(forum));
+    }
 
-        forumRepository.save(forum);
+    @GetMapping("/{id}")
+    public ResponseEntity detalhar(@PathVariable Long id) {
+        var topico = topicosRepository.findById(id).orElseThrow();
+        return ResponseEntity.ok(new Topicos.DadosDetalhamentoTopicos(topico));
+    }
 
-        var uri = uriBuilder.path("/forum/{id}").buildAndExpand(forum.getId()).toUri();
-        return ResponseEntity.created(uri).body(new DadosListagemForum(forum));
+    @PostMapping("/{id}")
+    @Transactional
+    public ResponseEntity<?> atualizar(@PathVariable Long id, @RequestBody @Valid DadosCadastroTopicos dados) {
+        var topico = topicosRepository.findById(id).orElseThrow(() -> new RuntimeException("Tópico não encontrado!"));
+        topico.atualizarInformacoes(dados);
+        topicosRepository.save(topico);
+        return ResponseEntity.ok(new Topicos.DadosDetalhamentoTopicos(topico));
+    }
+
+    @DeleteMapping("/{id}")
+    @Transactional
+    public ResponseEntity excluir(@PathVariable Long id){
+       var topicoOptional = topicosRepository.findByIdAndStatusTrue(id);
+        if (topicoOptional.isPresent()) {
+           var topico = topicosRepository.findById(id).orElseThrow();
+           topico.excluir();
+       } else {
+            return ResponseEntity.ok("Tópico não encontrado!");
+        }
+        return ResponseEntity.noContent().build();
     }
 
 }
