@@ -134,7 +134,7 @@ O servidor estará disponível em: `http://localhost:8080`
 
 | Método | Endpoint | Descrição | Autenticação |
 |--------|----------|-----------|--------------|
-| POST | `/autor/cadastrar` | Cadastrar novo autor | Não |
+| POST | `/autor/cadastrar` | Cadastrar novo autor | Sim |
 | GET | `/autor` | Listar todos os autores | Sim |
 | GET | `/autor/{id}` | Detalhar autor específico | Sim |
 
