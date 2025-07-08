@@ -2,11 +2,10 @@ package br.com.alura.ForumHub.controller;
 
 import br.com.alura.ForumHub.domain.autores.AutorRepository;
 import br.com.alura.ForumHub.domain.topicos.DadosCadastroTopicos;
+import br.com.alura.ForumHub.domain.topicos.DadosListagemTopicos;
 import br.com.alura.ForumHub.domain.topicos.Topicos;
 import br.com.alura.ForumHub.domain.topicos.TopicosRepository;
-import br.com.alura.ForumHub.domain.topicos.DadosListagemTopicos;
 import jakarta.validation.Valid;
-import jakarta.validation.ValidationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
